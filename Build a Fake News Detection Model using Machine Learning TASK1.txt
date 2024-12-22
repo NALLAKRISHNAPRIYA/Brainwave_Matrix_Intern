@@ -1,0 +1,183 @@
+     Step 1: Setting Up the Environment
+First, you'll need to ensure that you have the necessary packages installed. Use pip to install the required libraries:
+
+pip install pandas scikit-learn nltk
+
+Step 2: Data Collection
+For this example, we will use a publicly available dataset. The Fake News dataset can be found on platforms like Kaggle or you can create a mock dataset for testing.
+
+For demonstration, you can use the following sample dataset directly:
+
+CopyReplit
+data.csv
+id,text,label
+1,"The quick brown fox jumps over the lazy dog.",real
+2,"Aliens exist and they are living among us!",fake
+3,"The stock market is expected to crash next week according to scientists.",fake
+4,"The Earth revolves around the Sun.",real
+
+Step 3: Data Preprocessing
+Next, we need to read the dataset and preprocess it, including text cleaning and splitting the data into training and testing sets.
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+import nltk
+from nltk.corpus import stopwords
+import re
+
+# Download stopwords
+nltk.download('stopwords')
+
+# Load dataset
+data = pd.read_csv('data.csv')
+
+# Preprocessing function
+def preprocess_text(text):
+    text = text.lower()  # Lowercase
+    text = re.sub(r'\d+', '', text)  # Remove digits
+    text = re.sub(r'\W+', ' ', text)  # Remove special characters
+    tokens = text.split()
+    tokens = [word for word in tokens if word not in stopwords.words('english')]  # Remove stopwords
+    return ' '.join(tokens)
+
+# Applying the preprocessing
+data['cleaned_text'] = data['text'].apply(preprocess_text)
+
+# Encode labels
+data['label'] = data['label'].map({'real': 0, 'fake': 1})
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(data['cleaned_text'], data['label'], test_size=0.2, random_state=42)
+
+Step 4: Feature Extraction
+We will convert the text data into numerical format using TF-IDF vectorization.
+
+# Initialize TF-IDF Vectorizer
+vectorizer = TfidfVectorizer()
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_test)
+
+Step 5: Model Training
+We will train a Logistic Regression model on the TF-IDF features.
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
+
+# Initialize the model
+model = LogisticRegression()
+
+# Train the model
+model.fit(X_train_tfidf, y_train)
+
+# Predict on test data
+y_pred = model.predict(X_test_tfidf)
+
+Step 6: Model Evaluation
+Evaluate the model's performance using accuracy and classification report.
+
+
+# Model evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+Step 7: Saving the Model
+You can save the model and the vectorizer for future use.
+
+
+import joblib
+
+# Save the model
+joblib.dump(model, 'fake_news_model.pkl')
+joblib.dump(vectorizer, 'vectorizer.pkl')
+
+Step 8: Making Predictions
+Finally, let's create a function to predict new samples.
+
+
+def predict_news(text):
+    loaded_model = joblib.load('fake_news_model.pkl')
+    loaded_vectorizer = joblib.load('vectorizer.pkl')
+    
+    # Preprocess and vectorize the input text
+    cleaned_text = preprocess_text(text)
+    text_tfidf = loaded_vectorizer.transform([cleaned_text])
+    
+    # Make prediction
+    prediction = loaded_model.predict(text_tfidf)
+    return "Fake News" if prediction[0] == 1 else "Real News"
+
+# Example prediction
+print(predict_news("A new species of animal has been discovered!"))
+
+Here’s the complete code for the Fake News Detection model:
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+import nltk
+from nltk.corpus import stopwords
+import re
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
+import joblib
+
+# Download stopwords
+nltk.download('stopwords')
+
+# Load dataset
+data = pd.read_csv('data.csv')
+
+# Preprocessing function
+def preprocess_text(text):
+    text = text.lower()  # Lowercase
+    text = re.sub(r'\d+', '', text)  # Remove digits
+    text = re.sub(r'\W+', ' ', text)  # Remove special characters
+    tokens = text.split()
+    tokens = [word for word in tokens if word not in stopwords.words('english')]  # Remove stopwords
+    return ' '.join(tokens)
+
+# Applying the preprocessing
+data['cleaned_text'] = data['text'].apply(preprocess_text)
+
+# Encode labels
+data['label'] = data['label'].map({'real': 0, 'fake': 1})
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(data['cleaned_text'], data['label'], test_size=0.2, random_state=42)
+
+# Initialize TF-IDF Vectorizer
+vectorizer = TfidfVectorizer()
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_test)
+
+# Initialize the model
+model = LogisticRegression()
+
+# Train the model
+model.fit(X_train_tfidf, y_train)
+
+# Predict on test data
+y_pred = model.predict(X_test_tfidf)
+
+# Model evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+# Save the model
+joblib.dump(model, 'fake_news_model.pkl')
+joblib.dump(vectorizer, 'vectorizer.pkl')
+
+def predict_news(text):
+    loaded_model = joblib.load('fake_news_model.pkl')
+    loaded_vectorizer = joblib.load('vectorizer.pkl')
+    
+    cleaned_text = preprocess_text(text)
+    text_tfidf = loaded_vectorizer.transform([cleaned_text])
+    
+    prediction = loaded_model.predict(text_tfidf)
+    return "Fake News" if prediction[0] == 1 else "Real News"
+
+# Example prediction
+print(predict_news("A new species of animal has been discovered"))
