@@ -8,7 +8,6 @@ For this example, we will use a publicly available dataset. The Fake News datase
 
 For demonstration, you can use the following sample dataset directly:
 
-CopyReplit
 data.csv
 id,text,label
 1,"The quick brown fox jumps over the lazy dog.",real
