@@ -1,0 +1,147 @@
+Let's assume you have a dataset in a CSV file called creditcard.csv.
+
+Step 1: Load Libraries
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.preprocessing import StandardScaler
+from imblearn.over_sampling import SMOTE
+
+Step 2: Load and Explore the Data
+
+# Load the data
+data = pd.read_csv('creditcard.csv')
+
+# Show basic information about the dataset
+print(data.info())
+print(data.describe())
+
+# Check the distribution of the target variable
+sns.countplot(x='Class', data=data)
+plt.title('Fraud vs. Non-Fraud Transactions')
+plt.show()
+
+# Print the number of fraudulent and non-fraudulent transactions
+print(data['Class'].value_counts())
+
+Step 3: Preprocess the Data
+Split Features and Target
+Standardize the Features
+Handle Imbalanced Data using SMOTE
+
+# Split into features and target variable
+X = data.drop(['Class'], axis=1)
+y = data['Class']
+
+# Standardize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Handle imbalanced data using SMOTE
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_scaled, y)
+
+# Check the new distribution
+print(np.bincount(y_resampled))
+
+Step 4: Split the Data into Training and Testing Sets
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+
+print(f'Train shape: {X_train.shape}, Test shape: {X_test.shape}')
+
+Step 5: Build and Train the Model
+
+# Build the Random Forest Classifier
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Train the model
+model.fit(X_train, y_train)
+
+Step 6: Make Predictions and Evaluate the Model
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+Step 7: Visualization of Confusion Matrix
+# Plotting confusion matrix
+plt.figure(figsize=(8, 6))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
+plt.title('Confusion Matrix')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.show()
+
+
+Final Code
+Combining all the steps above gives you the final code for building a credit card fraud detection model:
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.preprocessing import StandardScaler
+from imblearn.over_sampling import SMOTE
+
+# Load the data
+data = pd.read_csv('creditcard.csv')
+
+# Basic information about dataset
+print(data.info())
+print(data.describe())
+
+# Count of fraud vs non-fraud transactions
+sns.countplot(x='Class', data=data)
+plt.title('Fraud vs. Non-Fraud Transactions')
+plt.show()
+print(data['Class'].value_counts())
+
+# Features and target variable
+X = data.drop(['Class'], axis=1)
+y = data['Class']
+
+# Standardize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Handle imbalanced data
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_scaled, y)
+print(np.bincount(y_resampled))
+
+# Split into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+
+# Build the model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+print(f'ROC AUC Score: {roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])}')
+
+# Visualize the confusion matrix
+plt.figure(figsize=(8, 6))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
+plt.title('Confusion Matrix')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.show()
